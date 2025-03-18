@@ -453,7 +453,7 @@ def main():
     # Backlogs Comparison Mode
     elif app_mode == "📋 Backlogs Comparison":
         st.markdown('<h1 class="fade-in">📋 Backlogs Comparison</h1>', unsafe_allow_html=True)
-        csv_path = r"C:\Users\rishi\Desktop\Vijaya\Backlog.csv"
+        csv_path = r"Backlog.csv"
         csv_data = extract_csv(csv_path)
         
         if csv_data:
