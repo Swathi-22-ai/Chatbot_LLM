@@ -5,3 +5,4 @@ langchain-google-genai==0.1.0
 google-generativeai==0.3.2
 faiss-cpu==1.7.4
 Pillow==10.1.0
+numpy==1.24.4  # Required by faiss-cpu
