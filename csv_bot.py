@@ -408,9 +408,9 @@ def main():
         if batch_selection == 'AI & DS 2021-2025':
             st.subheader(f"{batch_selection} Student Marks Portal")
             csv_paths_ai_ds_2021_2025 = {
-                "1-1": 1-1sem.csv", "1-2": 1-2sem.csv",
-                "2-1": 2-1sem.csv", "2-2": 2-2sem.csv",
-                "3-1": 3-1sem.csv", "3-2": 3-2sem.csv",
+                "1-1": r"C:1-1sem.csv", "1-2": r"C:1-2sem.csv",
+                "2-1": r"C:2-1sem.csv", "2-2": r"C:2-2sem.csv",
+                "3-1": r"C:3-1sem.csv", "3-2": r"C:3-2sem.csv",
             }
             semester = st.sidebar.select_slider('Semester:', options=["1-1", "1-2", "2-1", "2-2", "3-1", "3-2"])
             combined_data_2021_2025 = extract_csv(csv_paths_ai_ds_2021_2025[semester])
@@ -439,9 +439,9 @@ def main():
         elif batch_selection == 'AI & DS 2020-2024':
             st.subheader(f"{batch_selection} Student Marks Portal")
             csv_paths_ai_ds_2020_2024 = {
-                "1-1":1-1sems.csv", "1-2": 1-2sems.csv",
-                "2-1":2-1sems.csv", "2-2": 2-2sems.csv",
-                "3-1":3-1sems.csv", "3-2": 3-2sems.csv"
+                "1-1":r"C:1-1sems.csv", "1-2": r"C:1-2sems.csv",
+                "2-1":r"C:2-1sems.csv", "2-2": r"C:2-2sems.csv",
+                "3-1":r"C:3-1sems.csv", "3-2": r"C:3-2sems.csv"
             }
             combined_data_2020_24 = []
             for path in csv_paths_ai_ds_2020_2024.values():
