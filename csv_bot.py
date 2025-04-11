@@ -130,7 +130,7 @@ def load_css():
     .suggestion-button button {
         background-color: var(--suggestion-bg);
         border: none;
-        border-radius: 15px; /* More rounded shape */
+        border-radius: 15px;
         padding: 0.75rem 1.5rem;
         margin: 0.25rem;
         font-size: 0.9rem;
@@ -140,7 +140,7 @@ def load_css():
         align-items: center;
         gap: 0.5rem;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        width: auto; /* Allow natural width */
+        width: auto;
     }
     .suggestion-button button:hover {
         background-color: #d1d5db;
@@ -197,7 +197,7 @@ def load_css():
     </style>
     """, unsafe_allow_html=True)
 
-# Helper Functions (unchanged)
+# Helper Functions
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
@@ -273,19 +273,19 @@ def load_backlog_data(path: str) -> list[dict]:
 team_members = {
     "Swathi Priya": {
         "Role": "Team Lead", "Department": "AI&DS", "College": "Ramachandra College of Engineering",
-        "Email": "dswathipriya22@gmail.com", "Image_Path": r"Swathi.jpg"
+        "Email": "dswathipriya22@gmail.com", "Image_Path": r"C:\\Users\\rishi\\Desktop\\Vijaya\\Swathi.jpg"
     },
     "K. Kasyap": {
         "Roll Number": "21ME1A5421", "Branch": "Artificial Intelligence and Data Science",
-        "Email": "saiumakasyap@gmail.com", "Image_Path": r"Kasyap.jpg"
+        "Email": "saiumakasyap@gmail.com", "Image_Path": r"C:\\Users\\rishi\\Desktop\\Vijaya\\Kasyap.jpg"
     },
     "K. Srihitha": {
         "Roll Number": "21ME1A5433", "Branch": "Artificial Intelligence and Data Science",
-        "Email": "srihithakudaravalli87@gmail.com", "Image_Path": r"Srihitha.jpg"
+        "Email": "srihithakudaravalli87@gmail.com", "Image_Path": r"C:\\Users\\rishi\\Desktop\\Vijaya\\Srihitha.jpg"
     },
     "SK. Asma": {
         "Roll Number": "21ME1A5457", "Branch": "Artificial Intelligence and Data Science",
-        "Email": "asmashaik6281@gmail.com", "Image_Path": r"asma.jpg"
+        "Email": "asmashaik6281@gmail.com", "Image_Path": r"C:\\Users\\rishi\\Desktop\\Vijaya\\asma.jpg"
     }
 }
 
@@ -335,6 +335,14 @@ def main():
         app_mode = st.radio("", ["🏛️ College Info", "📊 Student Marks", "📋 Backlogs Comparison", "👥 Team & Project"], 
                            label_visibility="collapsed")
 
+    # Initialize session state for all modes
+    if "college_messages" not in st.session_state:
+        st.session_state.college_messages = []
+    if "marks_messages" not in st.session_state:
+        st.session_state.marks_messages = []
+    if "backlogs_messages" not in st.session_state:
+        st.session_state.backlogs_messages = []
+
     # College Info Mode
     if app_mode == "🏛️ College Info":
         if "welcome_shown" not in st.session_state:
@@ -343,17 +351,19 @@ def main():
         
         st.markdown('<h1 class="fade-in">🏛️ RCEE College Interactive Assistant</h1>', unsafe_allow_html=True)
         
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
-        if "input" not in st.session_state:
-            st.session_state.input = ""
-
-        pdf_file_paths = [r"RCEE.pdf"]
+        pdf_file_paths = [r"C:\Users\rishi\Desktop\GCP\RCEE.pdf"]
         raw_text = get_pdf_text(pdf_file_paths)
         text_chunks = get_text_chunks(raw_text)
         get_vector_store(text_chunks)
 
-        # Quick Questions Section with Horizontal Layout
+        # Display conversation history
+        if not st.session_state.college_messages:
+            display_chat_message("Hello! I'm your RCEE Assistant. Ask me anything about the college!", is_user=False)
+        else:
+            for message in st.session_state.college_messages:
+                display_chat_message(message["content"], is_user=(message["role"] == "user"))
+
+        # Quick Questions Section
         suggestions = [
             {"text": "What programs are offered?", "emoji": "🎓"},
             {"text": "Who is the principal?", "emoji": "👨‍🏫"},
@@ -363,113 +373,131 @@ def main():
         ]
         
         st.markdown('<div class="quick-questions">Quick Questions:</div>', unsafe_allow_html=True)
-        cols = st.columns(3)  # 3 columns for side-by-side layout
+        cols = st.columns(3)
         for i, suggestion in enumerate(suggestions):
-            with cols[i % 3]:  # Distribute across 3 columns
-                if st.button(f"{suggestion['emoji']} {suggestion['text']}", key=f"suggestion_{i}", help="Click to ask this question", use_container_width=False):
-                    st.session_state.messages.append({"role": "user", "content": suggestion['text']})
+            with cols[i % 3]:
+                if st.button(f"{suggestion['emoji']} {suggestion['text']}", key=f"suggestion_{i}"):
+                    st.session_state.college_messages.append({"role": "user", "content": suggestion['text']})
                     with st.status("Processing your question..."):
                         response = user_input(suggestion['text'])
-                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    st.session_state.college_messages.append({"role": "assistant", "content": response})
                     st.rerun()
 
-        # Chat Interface
-        chat_container = st.container()
-        with chat_container:
-            if not st.session_state.messages:
-                display_chat_message("Hello! I’m your RCEE Assistant. Ask me anything about the college!", is_user=False)
-            for message in st.session_state.messages:
-                display_chat_message(message["content"], is_user=(message["role"] == "user"))
-
-        user_query = st.chat_input("Ask me about RCEE College...") or st.session_state.input
+        # Chat input
+        user_query = st.chat_input("Ask me about RCEE College...")
         if user_query:
-            st.session_state.input = ""
-            st.session_state.messages.append({"role": "user", "content": user_query})
+            st.session_state.college_messages.append({"role": "user", "content": user_query})
             with st.status("Processing your question..."):
                 response = user_input(user_query)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            st.session_state.college_messages.append({"role": "assistant", "content": response})
             st.rerun()
 
     # Student Marks Mode
     elif app_mode == "📊 Student Marks":
         st.markdown('<h1 class="fade-in">📊 Student Result Analysis System</h1>', unsafe_allow_html=True)
         
+        # Display conversation history
+        if not st.session_state.marks_messages:
+            display_chat_message("Hello! I can help analyze student marks. Please provide a roll number and question.", is_user=False)
+        else:
+            for message in st.session_state.marks_messages:
+                display_chat_message(message["content"], is_user=(message["role"] == "user"))
+        
         batch_selection = st.sidebar.selectbox('Batch:', ['Select Batch', 'AI & DS 2021-2025', 'AI & DS 2020-2024'])
         
         if batch_selection == 'AI & DS 2021-2025':
             st.subheader(f"{batch_selection} Student Marks Portal")
             csv_paths_ai_ds_2021_2025 = {
-                "1-1": r"1-1sem.csv", "1-2": r"1-2sem.csv",
-                "2-1": r"2-1sem.csv", "2-2": r"2-2sem.csv",
-                "3-1": r"3-1sem.csv", "3-2": r"3-2sem.csv",
+                "1-1": r"C:\Users\rishi\Desktop\GCP\2021\1-1sem.csv", "1-2": r"C:\Users\rishi\Desktop\GCP\2021\1-2sem.csv",
+                "2-1": r"C:\Users\rishi\Desktop\GCP\2021\2-1sem.csv", "2-2": r"C:\Users\rishi\Desktop\GCP\2021\2-2sem.csv",
+                "3-1": r"C:\Users\rishi\Desktop\GCP\2021\3-1sem.csv", "3-2": r"C:\Users\rishi\Desktop\GCP\2021\3-2sem.csv",
             }
             semester = st.sidebar.select_slider('Semester:', options=["1-1", "1-2", "2-1", "2-2", "3-1", "3-2"])
             combined_data_2021_2025 = extract_csv(csv_paths_ai_ds_2021_2025[semester])
 
             create_info_card("🔍 Ask about your results", 
-                            "Enter your roll number and question. Example: 'Show my results for 21A91A6630'")
-            user_question = st.text_input("", placeholder="Example: What are my marks? Roll number: 21A91A6630")
-            if st.button("🚀 Analyze My Results"):
+                          "Enter your roll number and question. Example: 'Show my results for 21A91A6630'")
+            
+            user_question = st.text_input("", placeholder="Example: What are my marks? Roll number: 21A91A6630", key="marks_input")
+            if st.button("🚀 Analyze My Results", key="marks_analyze"):
                 display_loading_animation()
-                if user_question and (roll_number_match := re.search(r'\b(20|21)[A-Z]{2}[0-9]{1}[A-Z]{1}[0-9]{4}\b', user_question)):
-                    roll_number = roll_number_match.group(0)
-                    if is_valid_roll_number(roll_number, combined_data_2021_2025):
-                        model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest")
-                        prompt = f"Analyze this CSV data for semester {semester}:\n{''.join(combined_data_2021_2025)}\nQuestion: {user_question}"
-                        response = model.generate_content(prompt)
-                        st.markdown(f'<div class="assistant-bubble">{response.text}</div>', unsafe_allow_html=True)
+                if user_question:
+                    st.session_state.marks_messages.append({"role": "user", "content": user_question})
+                    if roll_number_match := re.search(r'\b(20|21)[A-Z]{2}[0-9]{1}[A-Z]{1}[0-9]{4}\b', user_question):
+                        roll_number = roll_number_match.group(0)
+                        if is_valid_roll_number(roll_number, combined_data_2021_2025):
+                            model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest")
+                            prompt = f"Analyze this CSV data for semester {semester}:\n{''.join(combined_data_2021_2025)}\nQuestion: {user_question}"
+                            response = model.generate_content(prompt)
+                            st.session_state.marks_messages.append({"role": "assistant", "content": response.text})
+                        else:
+                            st.session_state.marks_messages.append({"role": "assistant", "content": f"Roll number {roll_number} not found."})
                     else:
-                        st.error(f"Roll number {roll_number} not found.")
-                else:
-                    st.warning("Please include a valid roll number.")
+                        st.session_state.marks_messages.append({"role": "assistant", "content": "Please include a valid roll number in your query."})
+                    st.rerun()
 
         elif batch_selection == 'AI & DS 2020-2024':
             st.subheader(f"{batch_selection} Student Marks Portal")
             csv_paths_ai_ds_2020_2024 = {
-                "1-1": r"1-1sems.csv", "1-2": r"1-2sems.csv",
-                "2-1": r"2-1sems.csv", "2-2": r"2-2sems.csv",
-                "3-1": r"3-1sems.csv", "3-2": r"3-2sems.csv"
+                "1-1": r"C:/Users/rishi/Desktop/GCP/2020/1-1sems.csv", "1-2": r"C:/Users/rishi/Desktop/GCP/2020/1-2sems.csv",
+                "2-1": r"C:/Users/rishi/Desktop/GCP/2020/2-1sems.csv", "2-2": r"C:/Users/rishi/Desktop/GCP/2020/2-2sems.csv",
+                "3-1": r"C:/Users/rishi/Desktop/GCP/2020/3-1sems.csv", "3-2": r"C:/Users/rishi/Desktop/GCP/2020/3-2sems.csv"
             }
             combined_data_2020_24 = []
             for path in csv_paths_ai_ds_2020_2024.values():
                 combined_data_2020_24.extend(extract_csv(path))
             
             create_info_card("🔍 Ask about your results", 
-                            "Enter your roll number and question. Example: 'Show my results for 20A91A6630'")
-            user_query = st.text_input("", placeholder="Example: What are my marks? Roll number: 20A91A6630")
-            if st.button("🚀 Analyze My Results"):
+                          "Enter your roll number and question. Example: 'Show my results for 20A91A6630'")
+            
+            user_query = st.text_input("", placeholder="Example: What are my marks? Roll number: 20A91A6630", key="marks_input_2020")
+            if st.button("🚀 Analyze My Results", key="marks_analyze_2020"):
                 display_loading_animation()
-                if user_query and (roll_number_match := re.search(r'\b(20|21)[A-Z]{2}[0-9]{1}[A-Z]{1}[0-9]{4}\b', user_query)):
-                    roll_number = roll_number_match.group(0)
-                    if is_valid_roll_number(roll_number, combined_data_2020_24):
-                        model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest")
-                        prompt = f"Analyze this CSV data:\n{''.join(combined_data_2020_24)}\nQuestion: {user_query}"
-                        response = model.generate_content(prompt)
-                        st.markdown(f'<div class="assistant-bubble">{response.text}</div>', unsafe_allow_html=True)
+                if user_query:
+                    st.session_state.marks_messages.append({"role": "user", "content": user_query})
+                    if roll_number_match := re.search(r'\b(20|21)[A-Z]{2}[0-9]{1}[A-Z]{1}[0-9]{4}\b', user_query):
+                        roll_number = roll_number_match.group(0)
+                        if is_valid_roll_number(roll_number, combined_data_2020_24):
+                            model = genai.GenerativeModel(model_name="gemini-1.5-pro-latest")
+                            prompt = f"Analyze this CSV data:\n{''.join(combined_data_2020_24)}\nQuestion: {user_query}"
+                            response = model.generate_content(prompt)
+                            st.session_state.marks_messages.append({"role": "assistant", "content": response.text})
+                        else:
+                            st.session_state.marks_messages.append({"role": "assistant", "content": f"Roll number {roll_number} not found."})
                     else:
-                        st.error(f"Roll number {roll_number} not found.")
-                else:
-                    st.warning("Please include a valid roll number.")
+                        st.session_state.marks_messages.append({"role": "assistant", "content": "Please include a valid roll number in your query."})
+                    st.rerun()
+
     # Backlogs Comparison Mode
     elif app_mode == "📋 Backlogs Comparison":
         st.markdown('<h1 class="fade-in">📋 Backlogs Comparison</h1>', unsafe_allow_html=True)
-        csv_path = r"Backlog.csv"
+        
+        # Display conversation history
+        if not st.session_state.backlogs_messages:
+            display_chat_message("Hello! I can help with backlog information. Please ask your question.", is_user=False)
+        else:
+            for message in st.session_state.backlogs_messages:
+                display_chat_message(message["content"], is_user=(message["role"] == "user"))
+        
+        csv_path = r"C:\Users\rishi\Desktop\Vijaya\Backlog.csv"
         csv_data = extract_csv(csv_path)
         
         if csv_data:
             create_info_card("Backlog Data Overview", "Ask questions about student backlogs below.")
-            user_question = st.text_input("", placeholder="Example: How many backlogs does 21A91A6630 have?")
-            if st.button("🚀 Submit"):
+            
+            user_question = st.text_input("", placeholder="Example: How many backlogs does 21A91A6630 have?", key="backlogs_input")
+            if st.button("🚀 Submit", key="backlogs_submit"):
                 display_loading_animation()
                 if user_question:
+                    st.session_state.backlogs_messages.append({"role": "user", "content": user_question})
                     model = genai.GenerativeModel(model_name="gemini-1.5-flash-002")
                     prompt = f"Analyze this CSV data:\n{''.join(csv_data)}\nQuestion: {user_question}"
                     response = model.generate_content(prompt)
-                    st.markdown(f'<div class="assistant-bubble">{response.text}</div>', unsafe_allow_html=True)
+                    st.session_state.backlogs_messages.append({"role": "assistant", "content": response.text})
+                    st.rerun()
                 else:
-                    st.warning("Please enter a question.")
-        else:
-            st.error("No data loaded from CSV.")
+                    st.session_state.backlogs_messages.append({"role": "assistant", "content": "Please enter a question."})
+                    st.rerun()
 
     # Team Members & Project Details Mode
     elif app_mode == "👥 Team & Project":
@@ -496,8 +524,7 @@ def main():
             create_info_card("Batch No", "54A03")
             create_info_card("Branch", "Artificial Intelligence & Data Science")
             create_info_card("Mentor", "Mr. K. Kiran sir")
-            create_info_card("Abstract", """This application leverages large language models (LLMs) to create an interactive chatbot that offers college information and student performance analysis. The College Info function allows users to inquire about topics such as academic programs, faculty, and accreditation. Using a custom PDF parsing function, the chatbot extracts relevant information from college documents, divides it into manageable sections, and stores these in a FAISS vector store to enable efficient semantic search. An LLM then generates contextually accurate answers based on user queries. In addition, the Student Marks function provides an interface for analyzing student results by batch. It retrieves data from CSV files, validates user-input roll numbers, and, when valid, presents relevant academic details. The LLM further processes inquiries related to student data, ensuring clear and accurate responses. Overall, this chatbot combines cutting-edge AI techniques to deliver precise information retrieval and real-time data analysis, offering valuable support for students and administrators alike through an intuitive, accessible platform.""")  # Full abstract truncated
+            create_info_card("Abstract", """This application leverages large language models (LLMs) to create an interactive chatbot that offers college information and student performance analysis. The College Info function allows users to inquire about topics such as academic programs, faculty, and accreditation. Using a custom PDF parsing function, the chatbot extracts relevant information from college documents, divides it into manageable sections, and stores these in a FAISS vector store to enable efficient semantic search. An LLM then generates contextually accurate answers based on user queries. In addition, the Student Marks function provides an interface for analyzing student results by batch. It retrieves data from CSV files, validates user-input roll numbers, and, when valid, presents relevant academic details. The LLM further processes inquiries related to student data, ensuring clear and accurate responses. Overall, this chatbot combines cutting-edge AI techniques to deliver precise information retrieval and real-time data analysis, offering valuable support for students and administrators alike through an intuitive, accessible platform.""")
 
 if __name__ == "__main__":
     main()
-    
